@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<!-- This site was created in Webflow. http://www.webflow.com-->
+<!-- Last Published: Thu Sep 17 2015 06:10:44 GMT+0000 (UTC) -->
+<html data-wf-site="55f96353602f446d39c6411f" data-wf-page="55f96353602f446d39c64120">
+
+<head>
+  <meta charset="utf-8">
+  <title>navapp</title>
+  <meta name="generator" content="Webflow">
+  <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1.0,user-scalable=no" />
+  <link rel="stylesheet" type="text/css" href="css/normalize.css">
+  <link rel="stylesheet" type="text/css" href="css/webflow.css">
+  <link rel="stylesheet" type="text/css" href="css/navapp.webflow.css">
+
+  <script type="text/javascript" src="js/modernizr.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="text/javascript" src="js/eventemitter2.min.js"></script>
+  <script type="text/javascript" src="js/roslib.min.js"></script>
+</head>
+
+
+<body>
+  <div class="sidebar">
+    <a class="w-inline-block sideicon home" href="#" onclick="homeRobot();">
+      <img class="icon" height="50" src="images/5.png">
+    </a>
+    <a class="w-inline-block sideicon save" href="#" onclick="exportData();">
+      <img class="icon" width="50" height="50" src="images/7_1.png">
+    </a>
+    <div id="filediv"> </div>
+    <a class="w-inline-block sideicon load" href="#" id="x" onclick="document.getElementById('fileInput').click();">
+      <img class="icon" height="50" src="images/6.png">
+    </a>
+    <a class="w-inline-block sideicon undo" href="#" onclick="clearPreviousPoints();">
+      <img class="icon" width="50" height="50" src="images/9.png">
+    </a>
+    <a class="w-inline-block sideicon clear" href="#" onclick="clearCanvas();">
+      <img class="icon" width="50" height="50" src="images/12.png">
+    </a>
+    <a class="w-inline-block sideicon go" href="#" onclick="sendToServer();">
+      <img class="icon" width="60" height="60" src="images/7.png">
+    </a>
+    <a class="w-inline-block sideicon stop" href="#" onclick="cancelMission();">
+      <img class="icon" width="50" height="50" src="images/8.png">
+    </a>
+    <br>
+    <br>
+    <input type="file" id="fileInput" style="opacity:0" />
+  </div>
+  <div class="bottombar"></div>
+  <img class="waypoints" height="60" src="images/waypoints.png">
+  <div class="waypointtexts" id="txt"></div>
+  <center>
+    <div id="reboottitle" style="font-size:20pt"></div>
+  </center>
+  <center>
+    <div class="floorplan" id="canvas" style="background-image: url(images/floorplan.jpg);background-repeat:no-repeat;background-size: contain;overflow:hidden;position:relative;width:1200px;height:1115px;"></div>
+  </center>
+  <span id="timems"></span>
+  </div>
+  <div class="logoblock">
+    <img class="idalabs-logo" height="100" src="images/Unknown-3.jpeg">
+  </div>
+  <div class="topbar">
+    <a class="w-inline-block powerbuttonblock" href="#" onclick="rebootRobot();">
+      <img class="powerbutton" height="60" src="images/Power Button-128x128.png">
+    </a>
+    <div id="title" class="title">WAYPOINT&nbsp;PLANNER v0.1</div>
+  </div>
+  <div class="helpbox">
+    <div class="iconshelptext">HOME&nbsp;ROBOT
+      <br>
+      <br>
+      <br>SAVE&nbsp;WAYPOINTS
+      <br>
+      <br>
+      <br>LOAD&nbsp;WAYPOINTS
+      <br>
+      <br>
+      <br>UNDO
+      <br>
+      <br>
+      <br>CLEAR&nbsp;WAYPOINTS
+      <br>
+      <br>
+      <br>DEPLOY&nbsp;ROBOT
+      <br>
+      <br>
+      <br>CANCEL&nbsp;MISSION</div>
+    <div class="helptext">HELP</div>
+    <div class="howtohelptext">1. Hover beside the icons for labels.
+      <br>2. Always home the robot upon boot up.
+      <br>3. Plan your waypoints by clicking on any point in the floor plan.
+      <br>4. Press the play icon to deploy the robot.
+      <br>5. Reboot button is on the top left corner.</div>
+
+  </div>
+  <script src="js/jsDraw2D.js" type="text/javascript">
+  </script>
+  <script type="text/javascript">
+    var MAP_SCALER = 0.019;
+    var MAP_X_COMPENSATE = 7.27700;
+    var MAP_Y_COMPENSATE = 12.78699;
+    var HEADING_COMPENSATE = 25;
+
+    var socket = io.connect();
+    var canvasDiv = document.getElementById("canvas");
+    var gr = new jsGraphics(canvasDiv);
+    var penWidth;
+    var col;
+    var pen;
+    var d1, d2;
+    var msdiv = document.getElementById("timems");
+    var points = new Array();
+    var curX = 0;
+    var curY = 0;
+    var mode = 0;
+
+    var heading = 0;
+    var qw = 0;
+    var qx = 0;
+    var qy = 0;
+    var qz = 0;
+    var poseMsg = "";
+    var home = {
+      x: 0,
+      y: 0
+    }
+    var head = {
+      x: 0,
+      y: 0
+    }
+
+    var heading = 0;
+    var missionIsDone = true;
+    var homingIsDone = false;
+    var rebootingIsDone = true;
+    var drawingIsDone = true;
+
+    setPenColor(true);
+    var ie = false;
+    if (document.all)
+      ie = true;
+
+    if (!ie) {
+      //canvasDiv.captureEvents(Event.MOUSEMOVE)
+      //canvasDiv.captureEvents(Event.CLICK)
+    }
+
+    canvasDiv.onmousemove = getMouseXY;
+    canvasDiv.onclick = drawPoint;
+
+    var mouseX = 0
+    var mouseY = 0
+    function getMouseXY(e) {
+      if (ie) {
+        mouseX = event.clientX + document.body.parentElement.scrollLeft;
+        mouseY = event.clientY + document.body.parentElement.scrollTop;
+      } else {
+        mouseX = e.pageX
+        mouseY = e.pageY
+      }
+
+      if (mouseX < 0) {
+        mouseX = 0
+      }
+      if (mouseY < 0) {
+        mouseY = 0
+      }
+
+      mouseX = (mouseX - canvasDiv.offsetLeft);
+      mouseY = (mouseY - canvasDiv.offsetTop);
+      return true;
+    }
+
+    function setPenColor(noAlert) {
+      //This drawing settings ie. color size, etc...
+      col = new jsColor("red");
+
+      penWidth = 3;
+
+      pen = new jsPen(col, 1);
+
+      if (!isNaN(penWidth))
+        pen = new jsPen(col, penWidth);
+      else
+        pen = new jsPen(col, 1);
+
+      return true;
+    }
+
+    function drawPoint() {
+      if (mode === 0) {
+        //This is the default mode when user clicks the screen. This is used for plotting waypoints
+
+        //This makes sure that homing has been done before creating waypoints
+        if (homingIsDone) {
+          //Draws the waypoint location and label
+          gr.fillRectangle(new jsColor("blue"), new jsPoint(mouseX - 6, mouseY - 6), 10, 10);
+          //Save the waypoint to array
+          points[points.length] = new jsPoint(mouseX - 3, mouseY - 3);
+          //Connect the lines from point A to B if there's more than 1 waypoint
+          if (points.length > 1) {
+            drawLine();
+          }
+          //Write the waypoint label
+          gr.drawText(points.length, new jsPoint(mouseX + 6, mouseY + 6));
+          //Display the waypoints on the right panel.
+          showPoints();
+        } else
+          alert("You need to home the robot first.")
+      } else if (mode === 1) {
+        //This mode is used for homing the robot triggered by homeRobot()
+
+        //Draws the 'home' location specified the user
+        gr.fillRectangle(new jsColor("green"), new jsPoint(mouseX - 10, mouseY - 10), 10, 10);
+        gr.drawText('H', new jsPoint(mouseX + 6, mouseY + 6));
+        //assign the home coordinates to home object to be sent back to ROS
+        home.x = mouseX;
+        home.y = mouseY;
+        alert("Please click where the robot is facing.");
+        //Change the mode to '2' for robot's heading
+        mode = 2;
+      } else if (mode === 2) {
+        //This mode is used or telling the robot's heading
+
+        //assign the coordinates where the robot is facing from mouse-click
+        clearCanvas();
+        head.x = mouseX;
+        head.y = mouseY;
+
+        //run when there's a mouse click on this mode
+        if (home) {
+          console.log(head);
+          //calculate the angle of the line
+          calculateHeading();
+          //convert the Euler angle to Quaternion angle
+          calculateQuat();
+          //send pose to ROS
+          initialPose.publish(pose);
+          //reset mode flag
+          mode = 0;
+          //tell the server that the robot has been 'homed'
+          homingIsDone = true;
+          socket.emit("homingstate", homingIsDone);
+          alert("Homing done.");
+        }
+      }
+    }
+
+    function drawPolyline() {
+      //This function connects all the dots and draw lines in between points in the array
+      if (!setPenColor())
+        return;
+      d1 = (new Date()).getTime();
+      gr.drawPolyline(pen, points);
+      d2 = (new Date()).getTime();
+      msdiv.innerHTML = (d2 - d1);
+      showPoints();
+    }
+
+    function drawLine() {
+      //This function draws a line from point A to point B
+      if (!setPenColor())
+        return;
+      d1 = (new Date()).getTime();
+      gr.drawLine(pen, points[points.length - 2], points[points.length - 1]);
+      d2 = (new Date()).getTime();
+      msdiv.innerHTML = (d2 - d1);
+    }
+
+    function clearCanvas() {
+      gr.clear();
+      drawHome();
+      points = new Array();
+      clearPoints();
+    }
+
+    function clearPreviousPoints() {
+      //makes sure there's at least one point to undo
+      if (points.length > 0) {
+
+        drawHome();
+        gr.clear();
+
+        //makes sure not to screw up the array
+        if (points.length <= 1) {
+          clearCanvas();
+        }
+        //delete the latest point from the array
+        points.splice(points.length - 1, 1);
+        //show updated waypoints
+        refreshMap();
+      } else {
+        alert("No more points to clear");
+      }
+    }
+
+    function showPoints() {
+      //This function show all the points saved in the array at the right hand panel
+      document.getElementById("txt").innerHTML = " ";
+      txt.value = "";
+      for (var i = 0; i < points.length; i++) {
+        //Convert x and y to ROS coordinates
+        var x = (((points[i].x) * MAP_SCALER) - MAP_X_COMPENSATE);
+        var y = -(((points[i].y) * MAP_SCALER) - MAP_Y_COMPENSATE);
+        txt.value = txt.value + "WP: " + (i + 1) + "  X: " + x.toFixed(3) + " Y: " + y.toFixed(3) + "\r\n";
+      }
+      document.getElementById("txt").innerHTML += txt.value;
+    }
+
+    function clearPoints() {
+      //This function clears all the points show at the right hand panel
+      document.getElementById("txt").innerHTML = " ";
+    }
+
+    function refreshMap() {
+      //This draws all the updated points in the canvas
+      gr.clear();
+      for (var i = 0; i < points.length; i++) {
+        gr.fillRectangle(new jsColor("blue"), new jsPoint((points[i].x) - 6, (points[i].y) - 6), 10, 10);
+        gr.drawText(i + 1, new jsPoint((points[i].x) + 6, (points[i].y) + 6));
+      }
+      drawPolyline();
+      drawHome();
+    }
+
+    function exportData() {
+      //This function exports all waypoints in a csv file.
+
+      if (points.length > 0) {
+        document.getElementById('filediv').innerHTML = '';
+        var data = '';
+        console.log(data)
+        //Seperate each waypoint into rows for the csv file
+        for (var i = 0; i < points.length; i++) {
+          //This block writes in this format: waypointX, waypointY\r\n
+          var sep = '';
+          var x = (((points[i].x) * MAP_SCALER) - MAP_X_COMPENSATE);
+          var y = -(((points[i].y) * MAP_SCALER) - MAP_Y_COMPENSATE);
+          data += sep + x.toFixed(4);
+          sep = ',';
+          data += sep + y.toFixed(4);
+          data += '\r\n';
+        }
+        var exportLink = document.createElement('a');
+        //this creates the download link for the csv file.
+        exportLink.setAttribute('href', 'data:text/csv;base64,' + window.btoa(data));
+        exportLink.appendChild(document.createTextNode('waypoints.csv'));
+        document.getElementById('filediv').appendChild(exportLink);
+      } else {
+        {
+          alert("No waypoints added yet.");
+        }
+      }
+    }
+
+    var fileInput = document.getElementById('fileInput');
+    fileInput.addEventListener('change', function(e) {
+
+      var file = fileInput.files[0];
+      var textType = /text.*/;
+
+      filterInt = function(value) {
+        if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value))
+          return Number(value);
+        return NaN;
+      }
+
+      if (file.type.match(textType)) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          function float2int(value) {
+            return value | 0;
+          }
+          //split the whole string into rows by deteing '\r\n'
+          var res = (reader.result.split("\r"));
+          var res = (reader.result.split("\n"));
+          console.log(res);
+
+          for (var i = 0; i < (res.length - 1); i++) {
+            var parsedRes = new Array();
+            //split the strings from each array element
+            parsedRes = res[i].split(",");
+            points[i] = new jsPoint(parsedRes[0], parsedRes[1]);
+          }
+          //convert ROS coordinates to UI coordinates
+          for (var i = 0; i < points.length; i++) {
+            points[i].x = parseInt(((parseFloat(points[i].x)) + MAP_X_COMPENSATE) / MAP_SCALER);
+            points[i].y = parseInt(-((parseFloat(points[i].y)) - MAP_Y_COMPENSATE) / MAP_SCALER);
+          }
+          refreshMap();
+        }
+        reader.readAsText(file);
+      } else {
+        fileDisplayArea.innerText = "File not supported!";
+      }
+    });
+
+    function drawHome() {
+      gr.fillRectangle(new jsColor("green"), new jsPoint((curX) - 6, (curY) - 6), 15, 15);
+      gr.drawText('H', new jsPoint((curX) - 6, (curY) - 30))
+    }
+
+
+    function calculateHeading() {
+      //calculate the slope of the line, where:
+      // 'home' is the robot's location
+      // 'heading' is the point where the robot is facing
+      var m = (head.y - home.y) / (head.x - home.x);
+      //calculate the angle of the vector
+      heading = ((Math.atan(m)) * 180 / (Math.PI));
+
+      if ((home.x < head.x) && (home.y > head.y)) {
+        heading = -heading; //first quadrant (+,+)
+      } else if ((home.x > head.x) && (home.y > head.y)) {
+        heading = 180 - heading; //second quadrant (-,+)
+      } else if ((home.x > head.x) && (home.y < head.y)) {
+        heading = -(heading + 180); //third quadrant (-,-)
+      } else if ((home.x < head.x) && (home.y < head.y)) {
+        heading = -heading; //fourth quadrant (-,-)
+      }
+      //there's heading compensate as ROS's map is tilted on a certain angle
+      heading = heading - HEADING_COMPENSATE;
+    }
+
+    function calculateQuat() {
+      /*
+
+      */
+      var h = parseFloat(0) * Math.PI / 360;
+      var a = parseFloat(heading) * Math.PI / 360;
+      var b = parseFloat(0) * Math.PI / 360;
+      var c1 = Math.cos(h);
+      var c2 = Math.cos(a);
+      var c3 = Math.cos(b);
+      var s1 = Math.sin(h);
+      var s2 = Math.sin(a);
+      var s3 = Math.sin(b);
+      qw = Math.round((c1 * c2 * c3 - s1 * s2 * s3) * 100000) / 100000;
+      qx = Math.round((s1 * s2 * c3 + c1 * c2 * s3) * 100000) / 100000;
+      qy = Math.round((s1 * c2 * c3 + c1 * s2 * s3) * 100000) / 100000;
+      qz = Math.round((c1 * s2 * c3 - s1 * c2 * s3) * 100000) / 100000;
+      console.log(qw, qx, qy, qz);
+      //convert UI coordinates to ROS coordinates
+      home.x = (((home.x) * MAP_SCALER) - MAP_X_COMPENSATE);
+      home.y = -(((home.y) * MAP_SCALER) - MAP_Y_COMPENSATE);
+
+      //fill in pose object to be sent to ROS
+      pose.pose.pose.position.x = home.x;
+      pose.pose.pose.position.y = home.y;
+      pose.pose.pose.orientation.w = qw;
+      pose.pose.pose.orientation.z = qz;
+    }
+
+    function sendToServer() {
+      //This function sends all the waypoints to the server
+      refreshMap();
+      //makes sure the robot is homed before moving
+      if (homingIsDone) {
+        //makes sure the robot is not on a mission before moving
+        if (missionIsDone) {
+          var send = confirm("Waypoints created. Do you want to move now?")
+          if (send) {
+            //convert UI coordinates to ROS coordinates
+            for (var i = 0; i < points.length; i++) {
+              points[i].x = (((points[i].x) * MAP_SCALER) - MAP_X_COMPENSATE);
+              points[i].y = -(((points[i].y) * MAP_SCALER) - MAP_Y_COMPENSATE);
+            }
+            //send points object which contains all the waypoints to the server
+            socket.emit("waypoints", points);
+            //convert back points from ROS coordinates to UI coordinates
+            for (var i = 0; i < points.length; i++) {
+              points[i].x = parseInt(((points[i].x) + MAP_X_COMPENSATE) / MAP_SCALER);
+              points[i].y = parseInt(-((points[i].y) - MAP_Y_COMPENSATE) / MAP_SCALER);
+            }
+            //flag to indicate mission is done yet. To be unflagged by the server when mission is done.
+            missionIsDone = false;
+          }
+        } else
+          alert("You can't do this. Robot is still in a mission.");
+      } else
+        alert("You need to home the robot first.")
+    }
+
+    function homeRobot() {
+
+      alert("Please click the current location of the robots.");
+      mode = 1;
+    }
+
+    function rebootRobot() {
+      //This function software reboots the robot.
+      //Tells the server to restart ROS
+
+      //This prevents the user on spamming the button
+      if (rebootingIsDone) {
+        var reboot = confirm("Do you want to reboot the robot now?")
+        if (reboot) {
+          //some nifty graphics on the UI
+          clearCanvas();
+          document.getElementById('title').innerHTML = "REBOOTING ROBOT...";
+          document.getElementById('canvas').style.backgroundImage = "url('images/sleepingrobot.gif')";
+          document.getElementById('canvas').style.backgroundrepeat = "false";
+
+          //triggers the server to reboot ROS
+          socket.emit("reboot", "hello");
+          //restart the homing flag to require the user to home again after reboot
+          homingIsDone = false;
+          socket.emit("homingstate", homingIsDone);
+          rebootingIsDone = false;
+        }
+      } else {
+        alert("You can do this now. The robot is still rebooting.");
+      }
+    }
+
+    function cancelMission() {
+      //This functions cancels current mission.
+      //Tells the server to kill navigation node in ROS
+      socket.emit("cancelmission", "void");
+    }
+
+
+    socket.on("waypoints", function(msg) {
+    //callback when the page restarts to tell the client the last waypoints created
+
+      console.log(msg);
+      points = msg;
+      //convert all waypoints from ROS coordinates to UI coordinates
+      for (var i = 0; i < points.length; i++) {
+        points[i].x = parseInt(((points[i].x) + MAP_X_COMPENSATE) / MAP_SCALER);
+        points[i].y = parseInt(-((points[i].y) - MAP_Y_COMPENSATE) / MAP_SCALER);
+      }
+      //draw all the points sent from the server
+      refreshMap();
+    });
+
+    socket.on("missionstate", function(state) {
+      //callback when the page restarts to tell client if the robot is still in a mission
+        if (state === null)
+          state = true;
+        missionIsDone = state;
+        console.log("Mission is Done: " + missionIsDone);
+        if (missionIsDone && homingIsDone) {
+          alert("Mission Done!");
+          missionIsDone = true;
+        }
+    });
+
+    socket.on("homingstate", function(state) {
+      //callback when the page restarts to determine if robot has been homed
+        homingIsDone = state;
+        console.log("Homing Is Done: " + homingIsDone);
+
+    });
+
+    socket.on("reboot", function() {
+      //callback when the robot has been successfully rebooted
+      setTimeout(function() {
+        alert("Your robot is done rebooting. Refreshing page now.");
+        rebootingIsDone = true;
+        window.location.reload();
+      }, 5000);
+
+    });
+
+    // ROS
+    var ros = new ROSLIB.Ros({
+      url: 'ws://lino.local:9090'
+    });
+
+    ros.on('connection', function() {
+      //callback when thr client is connected to ROS bridge
+      console.log('Connected to websocket server.');
+    });
+
+    ros.on('error', function(error) {
+      //callback when client has problems connecting to ROS bridge
+      console.log('Error connecting to websocket server: ', error);
+    });
+
+    ros.on('close', function() {
+      //callback when client disconnected from ROS bridge
+      console.log('Connection to websocket server closed.');
+    });
+
+    var initialPose = new ROSLIB.Topic({
+      ros: ros,
+      name: '/initialpose',
+      messageType: 'geometry_msgs/PoseWithCovarianceStamped'
+    });
+
+    //initial pose object sent to ROS
+    var pose = new ROSLIB.Message({
+      // header:{frame_id: "/map"},pose:{pose:{position: {x: -0.534 , y: 5.34 , z: 0.00},orientation:{x: 0,  y: 0 , z: -0.19572 , w: 0.98066}},covariance: [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942]}
+      header: {
+        frame_id: "/map"
+      },
+      pose: {
+        pose: {
+          position: {
+            x: 0,
+            y: 0,
+            z: 0.00
+          },
+          orientation: {
+            x: 0,
+            y: 0,
+            z: -0.19572,
+            w: 0.98066
+          }
+        },
+        covariance: [0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891945200942]
+      }
+    });
+
+    // TF client settings
+    var tfClient = new ROSLIB.TFClient({
+      ros: ros,
+      fixedFrame: 'map',
+      updateDelay: 10,
+      angulatThres: 0.1,
+      transThres: 0.1
+    });
+
+    // subscribe to ROS to determine current location of the robot
+    tfClient.subscribe('base_link', function(tf) {
+      curX = parseInt(((tf.translation.x) + MAP_X_COMPENSATE) / MAP_SCALER);
+      curY = parseInt(-((tf.translation.y) - MAP_Y_COMPENSATE) / MAP_SCALER);
+      refreshMap();
+    });
+
+  </script>
+  <!--[if lte IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/placeholders/3.0.2/placeholders.min.js"></script><![endif]-->
+</body>
+
+</html>

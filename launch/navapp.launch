@@ -1,0 +1,6 @@
+<launch>
+	<include file="$(find turtlebot_bringup)/launch/minimal.launch"  respawn="true"/>
+	<include file="$(find turtlebot_navigation)/launch/amcl_demo.launch"  respawn="true"/>
+	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" respawn="true"/>
+	<node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher" respawn="true"/>
+</launch>

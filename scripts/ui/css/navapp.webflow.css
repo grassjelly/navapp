@@ -1,0 +1,352 @@
+.sidebar {
+  position: fixed;
+  left: 0px;
+  top: 30%;
+  bottom: 0px;
+  display: block;
+  max-height: 350px;
+  max-width: 80px;
+  min-height: 350px;
+  min-width: 80px;
+  margin-top: 0%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-bottom: 0px;
+  background-color: white;
+  opacity: 1;
+}
+.sideicon.home {
+  display: block;
+  margin-top: 0px;
+  margin-right: auto;
+  margin-left: auto;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.home:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.sideicon.save {
+  position: static;
+  display: block;
+  margin-top: 0px;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.save:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.sideicon.load {
+
+  display: block;
+  margin-top: 5px;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.load:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.sideicon.clear {
+  display: block;
+  margin-top: 5px;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.clear:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.sideicon.undo {
+  display: block;
+  margin-top: 5px;
+  margin-right: auto;
+  margin-left: auto;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.undo:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.sideicon.go {
+  display: block;
+  margin-top: 5px;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.go:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+
+.sideicon.stop {
+  display: block;
+  margin-top: 5px;
+  -webkit-transition: all 600ms ease;
+  transition: all 600ms ease;
+  text-decoration: none;
+}
+.sideicon.stop:hover {
+  -webkit-transform: scale(1.25) translate(18px, 0px);
+  -ms-transform: scale(1.25) translate(18px, 0px);
+  transform: scale(1.25) translate(18px, 0px);
+}
+.save {
+  position: fixed;
+}
+.icon {
+  display: block;
+  margin: 19px auto 0px 19px;
+  opacity: 1;
+}
+.topbar {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  height: 60px;
+  min-height: 50px;
+  background-color: black;
+}
+.title {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  right: 0px;
+  display: block;
+  width: 300px;
+  max-width: 300px;
+  min-width: 300px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-top: 20px;
+  background-color: transparent;
+  font-family: Roboto, sans-serif;
+  color: white;
+  font-size: 24px;
+  font-weight: 100;
+  text-align: left;
+}
+.floorplan {
+  display: block;
+  max-width: none;
+  margin-top: 100px;
+  margin-right: auto;
+  margin-left: auto;
+  background-color: white;
+  opacity: 1;
+}
+.bottombar {
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  display: block;
+  width: 100px;
+  height: 100px;
+  max-height: 100px;
+  max-width: 100px;
+  margin-right: auto;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  border-radius: 10px;
+  background-color: black;
+  background-image: url('../images/grid.jpg');
+  background-position: 0px 0px;
+  background-size: 960px;
+}
+.body {
+  background-color: rgba(34, 12, 12, 0.1);
+  background-image: url('../images/images.png');
+  background-position: 0px 0px;
+  background-size: 45px;
+}
+.play {
+  display: block;
+  margin-top: 39px;
+  margin-right: auto;
+  margin-left: auto;
+  color: white;
+  font-size: 38px;
+  text-align: center;
+  text-decoration: none;
+}
+.hovername {
+  margin-top: 3px;
+  margin-left: 4px;
+  opacity: 1;
+  color: #7d7e80;
+  text-decoration: none;
+}
+.hovername:hover {
+  opacity: 1;
+}
+.icontitle {
+  height: 60px;
+  margin-top: -54px;
+  margin-left: -10px;
+  padding-top: 17px;
+  padding-left: 100px;
+  opacity: 0;
+  color: black;
+}
+.icontitle:hover {
+  opacity: 1;
+}
+.help {
+  margin-left: 25px;
+}
+.helpbutton {
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  font-family: Roboto, sans-serif;
+  color: black;
+  font-weight: 100;
+  text-align: left;
+  text-decoration: none;
+}
+.helptext {
+  margin-bottom: 10px;
+  margin-left: 10px;
+  font-size: 30px;
+  font-weight: 300;
+  text-align: left;
+}
+.iconshelptext {
+  position: fixed;
+  left: 0px;
+  top: 32%;
+  right: 0px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  max-width: 150px;
+  margin-top: 0px;
+  margin-left: 82px;
+  opacity: 0;
+  line-height: 24px;
+}
+.iconshelptext:hover {
+  opacity: 1;
+}
+.howtohelptext {
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  margin-bottom: 50px;
+  margin-left: 10px;
+  opacity: 0;
+  font-size: 25px;
+  line-height: 23px;
+  font-weight: 200;
+}
+.howtohelptext:hover {
+  height: 150px;
+  margin-bottom: 10px;
+  opacity: 1;
+}
+.howtohelptext:active {
+  opacity: 1;
+}
+.helpbox {
+  position: fixed;
+  left: 0px;
+  bottom: 0px;
+  font-family: Roboto, sans-serif;
+  font-weight: 100;
+}
+.logoblock {
+  position: fixed;
+  right: 0px;
+  bottom: 0px;
+}
+.roslogo {
+  margin: 10px;
+}
+.idalabs-logo {
+  margin: 10px 30px 10px 10px;
+}
+.waypoints {
+  position: fixed;
+  top: 70px;
+  right: 0px;
+  bottom: 0px;
+  margin-right: 15px;
+}
+.waypointresults {
+  position: fixed;
+  top: 60px;
+  right: 0px;
+  bottom: 0px;
+  width: 220px;
+  height: 470px;
+  margin-right: 0px;
+  padding-top: 61px;
+  padding-right: 0px;
+  opacity: 0;
+  font-family: Roboto, sans-serif;
+}
+.waypointresults:hover {
+  top: 60px;
+  width: 200px;
+  padding-left: 38px;
+  opacity: 1;
+}
+.waypointresults:active {
+  padding-left: 0px;
+  opacity: 1;
+}
+.waypointtexts {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  bottom: 0px;
+  max-width: 230px;
+  min-width: 230px;
+  margin-top: 140px;
+  margin-right: 15px;
+  font-family: Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+  text-align: left;
+}
+.page {
+  width:100%;
+  height:100%;
+  zoom:0.67;
+  display: block;
+  overflow-x: visible;
+  overflow-y: visible;
+  margin-right: auto;
+  margin-left: auto;
+}
+.powerbutton {
+  margin-left: 10px;
+  padding-top: 0px;
+  padding-left: 0px;
+}
+.powerbuttonblock {
+  width: 60px;
+  height: 60px;
+}
+@media (max-width: 991px) {
+}
+@media (max-width: 479px) {
+}
